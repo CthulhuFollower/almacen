@@ -4,11 +4,14 @@ import com.example.almacen.dto.productos.ProductoRequest;
 import com.example.almacen.dto.productos.ProductoResponse;
 import com.example.almacen.entities.Producto;
 import com.example.almacen.enums.Categoria;
+import com.example.almacen.exceptions.DatoInvalidoException;
 import com.example.almacen.exceptions.RecursoNoEncontradoException;
 import com.example.almacen.mappers.ProductoMapper;
 import com.example.almacen.repositories.ProductoRepository;
+import com.example.almacen.specifications.ProductoSpecifications;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +30,28 @@ public class ProductoServiceImpl implements ProductosService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductoResponse> listar(String nombre, String categoria, BigDecimal precioMin, BigDecimal precioMax) {
+    public List<ProductoResponse> listar(String nombre, Categoria categoria, BigDecimal precioMin, BigDecimal precioMax) {
 
         log.info("Listando todos los productos");
 
-        return productoRepository.findAll().stream()
+        if (precioMax != null && precioMax.compareTo(BigDecimal.ZERO) < 0)
+            throw new DatoInvalidoException("El precio maximo no puede contener valores negativos");
+
+
+        if (precioMin != null && precioMin.compareTo(BigDecimal.ZERO) < 0)
+            throw new DatoInvalidoException("El precio minimo no puede contener valores negativos");
+
+        if (precioMax != null && precioMin != null && precioMin.compareTo(precioMax) > 0)
+            throw new DatoInvalidoException("El precio mínimo no puede ser mayor que el máximo");
+
+        Specification<Producto> filtros = Specification.allOf(
+                ProductoSpecifications.nombreContiene(nombre),
+                ProductoSpecifications.categoriaContiene(categoria),
+                ProductoSpecifications.precioMin(precioMin),
+                ProductoSpecifications.precioMax(precioMax)
+        );
+
+        return productoRepository.findAll(filtros).stream()
                 .map(productoMapper::entidadAResponse).toList();
     }
 
@@ -87,7 +107,8 @@ public class ProductoServiceImpl implements ProductosService{
         log.info("Producto con id {} eliminado", id);
     }
 
-    private Producto obtenerProductoOException(Long id){
+    @Override
+    public Producto obtenerProductoOException(Long id){
         log.info("Buscando producto con id: {}", id);
 
         return productoRepository.findById(id).orElseThrow(

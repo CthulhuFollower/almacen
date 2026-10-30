@@ -2,6 +2,7 @@ package com.example.almacen.services.sucursales;
 
 import com.example.almacen.dto.sucursales.SucursalRequest;
 import com.example.almacen.dto.sucursales.SucursalResponse;
+import com.example.almacen.entities.Sucursal;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,4 +19,6 @@ public interface SucursalService {
     SucursalResponse actualizar(SucursalRequest request, Long id);
 
     void eliminar (Long id);
+
+    Sucursal obtenerSucursalOException(Long id);
 }
