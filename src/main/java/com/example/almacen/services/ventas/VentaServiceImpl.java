@@ -1,6 +1,5 @@
 package com.example.almacen.services.ventas;
 
-import com.example.almacen.dto.ventas.DetalleVentaRequest;
 import com.example.almacen.dto.ventas.VentaRequest;
 import com.example.almacen.dto.ventas.VentaResponse;
 import com.example.almacen.entities.DetalleVenta;
@@ -8,14 +7,12 @@ import com.example.almacen.entities.Producto;
 import com.example.almacen.entities.Sucursal;
 import com.example.almacen.entities.Venta;
 import com.example.almacen.enums.EstadoVenta;
-import com.example.almacen.exceptions.ConflictoException;
 import com.example.almacen.exceptions.RecursoNoEncontradoException;
 import com.example.almacen.mappers.DetalleVentaMapper;
 import com.example.almacen.mappers.VentaMapper;
+import com.example.almacen.repositories.ProductoRepository;
 import com.example.almacen.repositories.SucursalRepository;
 import com.example.almacen.repositories.VentaRepository;
-import com.example.almacen.services.productos.ProductosService;
-import com.example.almacen.services.sucursales.SucursalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,9 +28,7 @@ public class VentaServiceImpl implements VentaService{
 
     private final SucursalRepository sucursalRepository;
 
-    private final SucursalService sucursalService;
-
-    private final ProductosService productoService;
+    private final ProductoRepository productoRepository;
 
     private final VentaRepository ventaRepository;
 
@@ -42,23 +37,30 @@ public class VentaServiceImpl implements VentaService{
     private final DetalleVentaMapper detalleVentaMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public List<VentaResponse> listar() {
 
         return ventaRepository.findByEstadoVenta(EstadoVenta.REGISTRADA).stream().map(ventaMapper::entidadAResponse).toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<VentaResponse> listarCanceladas() {
 
         return ventaRepository.findByEstadoVenta(EstadoVenta.CANCELADA).stream().map(ventaMapper::entidadAResponse).toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public VentaResponse obtenerPorIdActiva(Long id) {
+        log.info("Buscando venta registrada con id: {}", id);
 
+        Venta venta = ventaRepository.findByEstadoVentaAndId(EstadoVenta.REGISTRADA, id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Venta registrada no encontrada con id: " + id
+                ));
 
-
-        return null;
+        return ventaMapper.entidadAResponse(venta);
     }
 
     @Override
@@ -66,11 +68,11 @@ public class VentaServiceImpl implements VentaService{
         log.info("Inicia registro de venta");
 
 
-        Sucursal sucursal = sucursalService.obtenerSucursalOException(request.idSucursal());
+        Sucursal sucursal = obtenerSucursalOException(request.idSucursal());
 
         List<DetalleVenta> detalleVentas = request.productos().stream().map(
                 detalleVentaRequest -> {
-                    Producto producto = productoService.obtenerProductoOException(detalleVentaRequest.idProducto());
+                    Producto producto = obtenerProductoOException(detalleVentaRequest.idProducto());
 
                     return detalleVentaMapper.requestAEntidad(detalleVentaRequest, producto);
                 }
@@ -106,6 +108,26 @@ public class VentaServiceImpl implements VentaService{
 
         log.info("La venta con id {} fue cancelada exitosamente", id);
 
+    }
+
+    private Sucursal obtenerSucursalOException(Long id){
+        log.info("Buscando sucursal con id: {}", id);
+
+        return sucursalRepository.findById(id).orElseThrow(
+                () -> new RecursoNoEncontradoException(
+                        "Sucursal no encontrada con id: " + id
+                )
+        );
+    }
+
+    private Producto obtenerProductoOException(Long id){
+        log.info("Buscando producto con id: {}", id);
+
+        return productoRepository.findById(id).orElseThrow(
+                () -> new RecursoNoEncontradoException(
+                        "Producto no encontrado con id: " + id
+                )
+        );
     }
 
     Venta obtenerVentaOException(Long id){

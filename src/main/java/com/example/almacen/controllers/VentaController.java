@@ -30,6 +30,14 @@ public class VentaController {
         return ResponseEntity.ok(ventaService.listarCanceladas());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<VentaResponse> obtenerPorIdActiva(
+            @Parameter
+            @PathVariable @Positive Long id
+    ){
+        return ResponseEntity.ok(ventaService.obtenerPorIdActiva(id));
+    }
+
     @PostMapping
     public ResponseEntity<VentaResponse> registrar(
             @Valid @RequestBody VentaRequest request
