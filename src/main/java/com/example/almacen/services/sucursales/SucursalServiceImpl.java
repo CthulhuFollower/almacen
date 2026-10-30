@@ -90,8 +90,9 @@ public class SucursalServiceImpl implements SucursalService
 
     }
 
-    private Sucursal obtenerSucursalOException(Long id){
-        log.info("Buscando producto con id: {}", id);
+    @Override
+    public Sucursal obtenerSucursalOException(Long id){
+        log.info("Buscando sucursal con id: {}", id);
 
         return sucursalRepository.findById(id).orElseThrow(
                 () -> new RecursoNoEncontradoException(

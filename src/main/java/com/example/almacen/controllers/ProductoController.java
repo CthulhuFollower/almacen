@@ -3,6 +3,7 @@ package com.example.almacen.controllers;
 import com.example.almacen.docs.ProblemaDoc;
 import com.example.almacen.dto.productos.ProductoRequest;
 import com.example.almacen.dto.productos.ProductoResponse;
+import com.example.almacen.enums.Categoria;
 import com.example.almacen.services.productos.ProductosService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,12 +40,16 @@ public class ProductoController {
     @Operation(summary = "Listar productos", description = "Todos los filtros son opcionales.")
     @ApiResponse(responseCode = "200", description = "Listado obtenido")
     public ResponseEntity<List<ProductoResponse>> listar(
+
             @Parameter(description = "Búsqueda por nombre", example = "Laptop")
             @RequestParam(required = false) String nombre,
+
             @Parameter(description = "Filtrar por categoría", example = "Electrónica")
-            @RequestParam(required = false) String categoria,
+            @RequestParam(required = false) Categoria categoria,
+
             @Parameter(description = "Precio mínimo", example = "1000")
             @RequestParam(required = false) BigDecimal precioMin,
+
             @Parameter(description = "Precio máximo", example = "20000")
             @RequestParam(required = false) BigDecimal precioMax
     ) {

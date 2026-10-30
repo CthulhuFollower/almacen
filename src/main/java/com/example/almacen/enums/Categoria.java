@@ -31,6 +31,6 @@ public enum Categoria {
             if (StringCustomUtils.normalizarTexto(categoria.descripcion).equalsIgnoreCase(descripcionNormalizada))
                 return categoria;
         }
-        throw new DatoInvalidoException("No existe una cateogria con la descripcion: " + descripcion);
+        throw new DatoInvalidoException("No existe una categoria con la descripcion: " + descripcion);
     }
 }
