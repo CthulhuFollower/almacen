@@ -79,10 +79,6 @@ class ProductoTest {
     }
 
     @Test
-    void name() {
-    }
-
-    @Test
     void actualizar_debeLanzarExcepcion_cuandoElNombreEsMuyCorto() {
         // Arrange
         Producto producto = Producto.builder()
