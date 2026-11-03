@@ -51,6 +51,8 @@ public class ProductoServiceImpl implements ProductosService{
                 ProductoSpecifications.precioMax(precioMax)
         );
 
+        log.info("Productos listados correctamente");
+
         return productoRepository.findAll(filtros).stream()
                 .map(productoMapper::entidadAResponse).toList();
     }
